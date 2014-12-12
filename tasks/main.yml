@@ -69,6 +69,16 @@
   notify: reload docker
   tags: [configuration, docker, docker-install]
 
+- name: update configuration file - /etc/default/docker
+  template:
+    src: etc/default/docker.j2
+    dest: /etc/default/docker
+    owner: root
+    group: root
+    mode: 0644
+  notify: reload docker
+  tags: [configuration, docker, docker-configuration]
+
 - name: start and enable service
   service:
     name: docker
