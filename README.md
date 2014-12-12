@@ -16,7 +16,7 @@ Set up the latest version of docker in Ubuntu systems.
 * `docker_tmpdir` [default: `''`]:  This is also a handy place to tweak where Docker's temporary files go
 * `docker_manage_ufw` [default: `true`]: Whether or not `uwf` should be managed (change default forward policy) by this role
 * `docker_manage_updatedb` [default: `true`]: Whether or not `updatedb` should be managed (disable indexing of `/var/lib/docker`) by this role
-* `docker_install_api_client` [default: `true`]: Whether or not `docker-py` should be installed
+* `docker_install_api_client` [default: `false`]: Whether or not `docker-py` should be installed
 
 ## Dependencies
 
