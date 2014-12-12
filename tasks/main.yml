@@ -112,3 +112,20 @@
   shell: /usr/bin/updatedb -e /var/lib/docker
   when: docker_manage_updatedb and updatedb_file_stats.stat.exists
   tags: [configuration, docker, docker-updatedb]
+
+- name: install docker-py requirements
+  apt:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - python-dev
+    - python-pip
+  when: docker_install_api_client
+  tags: [configuration, docker, docker-api-client]
+
+- name: install docker-py
+  pip:
+    name: docker-py
+    state: latest
+  when: docker_install_api_client
+  tags: [configuration, docker, docker-api-client]
