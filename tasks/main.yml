@@ -64,7 +64,7 @@
 
 - name: install
   apt:
-    name: lxc-docker
+    name: "{{ docker_package }}"
     state: latest
   notify: reload docker
   tags: [configuration, docker, docker-install]
@@ -117,10 +117,8 @@
   apt:
     name: "{{ item }}"
     state: latest
-  with_items:
-    - python-dev
-    - python-pip
-  when: docker_install_api_client
+  with_items: docker_api_client_requirements
+  when: docker_install_api_client and docker_api_client_requirements
   tags: [configuration, docker, docker-api-client]
 
 - name: install docker-py

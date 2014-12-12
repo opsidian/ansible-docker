@@ -11,5 +11,9 @@ docker_repository:
   - type: deb
     url: "https://get.docker.com/ubuntu docker"
     component: main
+docker_package: lxc-docker
 docker_ufw_default_file: /etc/default/ufw
 docker_updatedb_file: /etc/updatedb.conf
+docker_api_client_requirements:
+  - python-dev
+  - python-pip
