@@ -13,7 +13,7 @@ before_install:
   - sudo apt-get update -qq
 
   # Remove lxc-docker
-  - sudo apt-get remove --purge lxc-docker
+  - sudo apt-get remove --purge lxc-docker || true
 
 install:
   # Install Ansible.
@@ -26,15 +26,8 @@ script:
   # Check the role/playbook's syntax.
   - ansible-playbook -i tests/inventory tests/test.yml --syntax-check
 
-  # Run the role/playbook with ansible-playbook.
-  - ansible-playbook -i tests/inventory tests/test.yml --connection=local --sudo -vvvv
-
-  # Run the role/playbook again, checking to make sure it's idempotent.
-  - >
-    ansible-playbook -i tests/inventory tests/test.yml --connection=local --sudo
-    | grep -q 'changed=0.*failed=0'
-    && (echo 'Idempotence test: pass' && exit 0)
-    || (echo 'Idempotence test: fail' && exit 1)
-
 notifications:
   email: false
+  hipchat:
+    rooms:
+      secure: GPUtM44MpgqN/3+TXw4Onp7TpF6YOKpVQkB/sfwGYS1oHUCkp2eb3eGGfJAIUtNxkfFVkdUxM/Bp9GMCnpVjJwRRZP6hYUmlpjCHl8CiK2MjbLvzV65qqBAqYl5bLzKkmmRdPiC31m9ixMe4TiAhJFBK1NoETOP1LkCJ04ezL6U=

@@ -1,116 +1,129 @@
 ---
-# tasks file for docker.ubuntu
-- name: Fail if not a new release of Ubuntu
-  fail: msg="{{ ansible_distribution_version }} is not an acceptable version of Ubuntu for this role"
-  when: "ansible_distribution_version not in ['12.04', '13.04', '13.10', '14.04', '14.10']"
-  
-- name: Install raring kernel onto 12.04
+# tasks file for docker
+- name: install backported kernel
   apt:
-    pkg: "{{ item }}"
+    name: "{{ item }}"
     state: latest
     update_cache: yes
-    cache_valid_time: 600
-  with_items:
-    - linux-image-generic-lts-raring
-    - linux-headers-generic-lts-raring
-  register: kernel_result
-  when: "ansible_distribution_version == '12.04'"
+  with_items: docker_backported_kernel_packages
+  register: backported_kernel_result
+  when: "ansible_distribution_version == '12.04' and docker_backported_kernel_packages"
+  tags: [configuration, docker, docker-backported-kernel]
 
-- name: Install latest kernel extras for Ubuntu 13.04+
-  apt:
-    pkg: "linux-image-extra-{{ ansible_kernel }}"
-    state: "{{ kernel_pkg_state }}"
-    update_cache: yes
-    cache_valid_time: 600
-  when: "ansible_distribution_version == '13.04' or ansible_distribution_version == '13.10'"
-
-# Fix for https://github.com/dotcloud/docker/issues/4568
-- name: Install cgroup-lite for Ubuntu 13.10
-  apt:
-    pkg: cgroup-lite
-    state: "{{ cgroup_lite_pkg_state }}"
-    update_cache: yes
-    cache_valid_time: 600
-  register: cgroup_lite_result
-  when: "ansible_distribution_version == '13.10'"
-
-- name: Reboot instance
+- name: reboot
   command: /sbin/shutdown -r now
-  register: reboot_result
-  when: "(ansible_distribution_version == '12.04' and kernel_result|changed)
-      or (ansible_distribution_version == '13.10' and cgroup_lite_result|changed)"
+  async: 0
+  poll: 0
+  ignore_errors: true
+  register: backported_kernel_result
+  when: "(ansible_distribution_version == '12.04' and backported_kernel_result|changed)"
+  tags: [configuration, docker, docker-reboot]
 
-- name: Wait for instance to come online
+- name: wait for server to come online
   local_action:
     module: wait_for
-    host: "{{ ansible_ssh_host|default(inventory_hostname) }}"
-    port: "{{ ansible_ssh_port|default(ssh_port) }}"
-    delay: 30
+    host: "{{ ansible_ssh_host | default(inventory_hostname) }}"
+    port: "{{ ansible_ssh_port | default(22) }}"
+    delay: 15
     timeout: 600
     state: started
-  when: "(ansible_distribution_version == '12.04' and reboot_result|changed)
-      or (ansible_distribution_version == '13.10' and cgroup_lite_result|changed)"
+  sudo: false
+  when: "(ansible_distribution_version == '12.04' and backported_kernel_result|changed)"
+  tags: [configuration, docker, docker-reboot]
 
-- name: Add Docker repository key
-  apt_key:
-    id: "{{ apt_key_sig }}"
-    url: "{{ apt_key_url }}"
-    state: present
+- name: detect https transport for apt
+  stat:
+    path: "{{ docker_apt_https_transport_file }}"
+  register: https_transport_file_stats
+  tags: [configuration, docker, docker-https-transport]
 
-- name: Add Docker repository
-  apt_repository:
-    repo: "{{ apt_repository }}"
-    update_cache: yes
-    state: present
-
-- name: Install (or update) docker.io
-  apt: 
-    name: "{{ docker_io_pkg }}"
+- name: install https transport for apt
+  apt:
+    name: apt-transport-https
     state: latest
-    update_cache: yes
-      
-- name: Install Docker
-  apt: pkg={{ docker_lxc_pkg }}
-  notify: "Start Docker"
+  when: not https_transport_file_stats.stat.exists
+  tags: [configuration, docker, docker-https-transport]
 
-- name: Expose docker host
-  copy:
-    content: "DOCKER_OPTS=\"{{ docker_opts }}\""
+- name: add public key
+  apt_key:
+    id: "{{ item.id }}"
+    url: "{{ item.url }}"
+    state: present
+  with_items: docker_apt_key
+  when: docker_apt_key
+  tags: [configuration, docker, docker-add-public-key]
+
+- name: add repository
+  apt_repository:
+    repo: "{{ item.type }} {{ item.url }} {{ item.component }}"
+    state: present
+    update_cache: yes
+  with_items: docker_repository
+  when: docker_repository
+  tags: [configuration, docker, docker-add-repository]
+
+- name: install
+  apt:
+    name: "{{ docker_package }}"
+    state: latest
+  notify: reload docker
+  tags: [configuration, docker, docker-install]
+
+- name: update configuration file - /etc/default/docker
+  template:
+    src: etc/default/docker.j2
     dest: /etc/default/docker
     owner: root
     group: root
-    mode: 0744
-  notify:
-    - Reload docker
-  when: "export_docker_host"    
-  
-- name: Install pip python package
+    mode: 0644
+  notify: reload docker
+  tags: [configuration, docker, docker-configuration]
+
+- name: start and enable service
+  service:
+    name: docker
+    state: started
+    enabled: yes
+  tags: [configuration, docker, docker-start-enable-service]
+
+- name: check ufw default file existence
+  stat:
+    path: "{{ docker_ufw_default_file }}"
+  register: ufw_default_file_stats
+  when: docker_manage_ufw
+  tags: [configuration, docker, docker-ufw]
+
+- name: change ufw default forward policy
+  lineinfile:
+    dest: "{{ docker_ufw_default_file }}"
+    regexp: "^DEFAULT_FORWARD_POLICY="
+    line: "DEFAULT_FORWARD_POLICY=\"ACCEPT\""
+  when: docker_manage_ufw and ufw_default_file_stats.stat.exists
+  tags: [configuration, docker, docker-ufw]
+
+- name: check updatedb file existence
+  stat:
+    path: "{{ docker_updatedb_file }}"
+  register: updatedb_file_stats
+  when: docker_manage_updatedb
+  tags: [configuration, docker, docker-updatedb]
+
+- name: disable indexing of /var/lib/docker
+  shell: /usr/bin/updatedb -e /var/lib/docker
+  when: docker_manage_updatedb and updatedb_file_stats.stat.exists
+  tags: [configuration, docker, docker-updatedb]
+
+- name: install docker-py requirements
   apt:
-    pkg: "{{ item }}"
+    name: "{{ item }}"
     state: latest
-    update_cache: yes
-    cache_valid_time: 600
-  with_items:
-    - python-dev
-    - python-pip
-  register: kernel_result
+  with_items: docker_api_client_requirements
+  when: docker_install_api_client and docker_api_client_requirements
+  tags: [configuration, docker, docker-api-client]
 
-- name: Install Docker-py
-  pip: name=docker-py   
-
-- name: Check if /etc/updatedb.conf exists
-  stat: path=/etc/updatedb.conf
-  register: updatedb_conf_exists
-
-- name: Ensure updatedb does not index /var/lib/docker
-  shell: >
-    ex -s -c '/PRUNEPATHS=/v:/var/lib/docker:s:"$: /var/lib/docker"' -c 'wq' /etc/updatedb.conf
-  when: updatedb_conf_exists.stat.exists
-
-- name: Check if /etc/default/ufw exists
-  stat: path=/etc/default/ufw
-  register: ufw_default_exists
-
-- name: Change ufw default forward policy from drop to accept
-  lineinfile: dest=/etc/default/ufw regexp="^DEFAULT_FORWARD_POLICY=" line="DEFAULT_FORWARD_POLICY=\"ACCEPT\""
-  when: ufw_default_exists.stat.exists
+- name: install docker-py
+  pip:
+    name: docker-py
+    state: latest
+  when: docker_install_api_client
+  tags: [configuration, docker, docker-api-client]
