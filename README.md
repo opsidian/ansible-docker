@@ -22,6 +22,11 @@ Set up the latest version of docker in Ubuntu systems.
 
 None
 
+## Recommended
+
+* `ansible-updatedb` ([see](https://github.com/Oefenweb/ansible-updatedb), when `docker_manage_ufw` is `false`)
+* `ansible-ufw` ([see](https://github.com/Oefenweb/ansible-ufw), when `docker_manage_updatedb` is `false`)
+
 #### Example
 
 ```yaml
