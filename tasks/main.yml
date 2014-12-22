@@ -31,6 +31,14 @@
   when: "(ansible_distribution_version == '12.04' and backported_kernel_result|changed)"
   tags: [configuration, docker, docker-reboot]
 
+- name: install dependencies
+  apt:
+    name: "{{ item }}"
+    state: latest
+  with_items: docker_dependencies
+  when: docker_dependencies
+  tags: [configuration, docker, docker-dependencies]
+
 - name: detect https transport for apt
   stat:
     path: "{{ docker_apt_https_transport_file }}"
