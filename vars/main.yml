@@ -1,8 +1,8 @@
 ---
 # vars file for docker
 docker_backported_kernel_packages:
-  - linux-image-generic-lts-raring
-  - linux-headers-generic-lts-raring
+  - linux-image-generic-lts-trusty
+  - linux-headers-generic-lts-trusty
 docker_dependencies:
   - apparmor
   - cgroup-lite
