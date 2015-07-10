@@ -14,7 +14,7 @@ Set up the latest version of docker in Ubuntu systems.
 * `docker_opts` [default: `''`]: Modify the daemon startup options
 * `docker_http_proxy` [default: `''`]: If you need Docker to use an HTTP proxy, it can (also) be specified here
 * `docker_tmpdir` [default: `''`]:  This is also a handy place to tweak where Docker's temporary files go
-* `docker_manage_ufw` [default: `true`]: Whether or not `uwf` should be managed (change default forward policy) by this role
+* `docker_manage_ufw` [default: `true`]: Whether or not `ufw` should be managed (change default forward policy) by this role
 * `docker_manage_updatedb` [default: `true`]: Whether or not `updatedb` should be managed (disable indexing of `/var/lib/docker`) by this role
 * `docker_install_api_client` [default: `false`]: Whether or not `docker-py` should be installed
 
