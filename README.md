@@ -33,7 +33,7 @@ None
 ---
 - hosts: all
   roles:
-  - docker
+    - docker
 ```
 
 #### License

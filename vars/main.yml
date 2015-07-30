@@ -1,5 +1,5 @@
----
 # vars file for docker
+---
 docker_backported_kernel_packages:
   - linux-image-generic-lts-trusty
   - linux-headers-generic-lts-trusty

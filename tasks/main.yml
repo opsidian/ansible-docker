@@ -1,22 +1,27 @@
----
 # tasks file for docker
+---
+- name: apt update
+  apt:
+    update_cache: true
+    cache_valid_time: 3600
+  tags: [configuration, docker, docker-apt-update]
+
 - name: install backported kernel
   apt:
     name: "{{ item }}"
     state: latest
-    update_cache: yes
   with_items: docker_backported_kernel_packages
   register: backported_kernel_result
   when: "ansible_distribution_version == '12.04' and docker_backported_kernel_packages"
   tags: [configuration, docker, docker-backported-kernel]
 
 - name: reboot
-  command: /sbin/shutdown -r now
+  command: "/sbin/shutdown -r now"
   async: 0
   poll: 0
   ignore_errors: true
   register: backported_kernel_result
-  when: "(ansible_distribution_version == '12.04' and backported_kernel_result|changed)"
+  when: "(ansible_distribution_version == '12.04' and backported_kernel_result | changed)"
   tags: [configuration, docker, docker-reboot]
 
 - name: wait for server to come online
@@ -28,7 +33,7 @@
     timeout: 600
     state: started
   sudo: false
-  when: "(ansible_distribution_version == '12.04' and backported_kernel_result|changed)"
+  when: "(ansible_distribution_version == '12.04' and backported_kernel_result | changed)"
   tags: [configuration, docker, docker-reboot]
 
 - name: install dependencies
@@ -117,7 +122,7 @@
   tags: [configuration, docker, docker-updatedb]
 
 - name: disable indexing of /var/lib/docker
-  shell: /usr/bin/updatedb -e /var/lib/docker
+  command: "/usr/bin/updatedb -e /var/lib/docker"
   when: docker_manage_updatedb and updatedb_file_stats.stat.exists
   tags: [configuration, docker, docker-updatedb]
 
