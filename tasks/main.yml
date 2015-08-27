@@ -54,7 +54,7 @@
   apt:
     name: apt-transport-https
     state: latest
-  when: not https_transport_file_stats.stat.exists
+  when: https_transport_file_stats.stat.exists == false
   tags: [configuration, docker, docker-https-transport]
 
 - name: add public key
