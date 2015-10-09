@@ -41,7 +41,6 @@
     name: "{{ item }}"
     state: latest
   with_items: docker_dependencies
-  when: docker_dependencies
   tags: [configuration, docker, docker-dependencies]
 
 - name: detect https transport for apt
@@ -63,16 +62,14 @@
     url: "{{ item.url }}"
     state: present
   with_items: docker_apt_key
-  when: docker_apt_key
   tags: [configuration, docker, docker-add-public-key]
 
 - name: add repository
   apt_repository:
     repo: "{{ item.type }} {{ item.url }} {{ item.component }}"
     state: present
-    update_cache: yes
+    update_cache: true
   with_items: docker_repository
-  when: docker_repository
   tags: [configuration, docker, docker-add-repository]
 
 - name: install
@@ -96,7 +93,7 @@
   service:
     name: docker
     state: started
-    enabled: yes
+    enabled: true
   tags: [configuration, docker, docker-start-enable-service]
 
 - name: check ufw default file existence
@@ -131,7 +128,7 @@
     name: "{{ item }}"
     state: latest
   with_items: docker_api_client_requirements
-  when: docker_install_api_client and docker_api_client_requirements
+  when: docker_install_api_client
   tags: [configuration, docker, docker-api-client]
 
 - name: install docker-py
