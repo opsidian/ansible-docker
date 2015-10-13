@@ -6,7 +6,7 @@ Set up the latest version of docker in Ubuntu systems.
 
 #### Requirements
 
-* `python-apt`
+* `pip`, if `docker_install_api_client` is `true` (will not installed)
 
 #### Variables
 
@@ -26,6 +26,7 @@ None
 
 * `ansible-updatedb` ([see](https://github.com/Oefenweb/ansible-updatedb), when `docker_manage_ufw` is `false`)
 * `ansible-ufw` ([see](https://github.com/Oefenweb/ansible-ufw), when `docker_manage_updatedb` is `false`)
+* `ansible-pip` ([see](https://github.com/Oefenweb/ansible-pip), when `docker_install_api_client` is `true`)
 
 #### Example
 
