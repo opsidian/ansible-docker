@@ -3,7 +3,7 @@
 - name: apt update
   apt:
     update_cache: true
-    cache_valid_time: 3600
+    cache_valid_time: "{{ apt_update_cache_valid_time | default(3600) }}"
   tags: [configuration, docker, docker-apt-update]
 
 - name: install backported kernel
