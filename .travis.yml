@@ -44,7 +44,7 @@ before_install:
   - sudo apt-get update -qq
 
   # Remove lxc-docker
-  - sudo apt-get remove --purge lxc-docker || true
+  - sudo apt-get remove --purge --yes lxc-docker || true
 
 install:
   # Install Ansible.
