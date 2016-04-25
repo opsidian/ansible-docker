@@ -2,21 +2,25 @@
 
 [![Build Status](https://travis-ci.org/Oefenweb/ansible-docker.svg?branch=master)](https://travis-ci.org/Oefenweb/ansible-docker) [![Ansible Galaxy](http://img.shields.io/badge/ansible--galaxy-docker-blue.svg)](https://galaxy.ansible.com/list#/roles/2309)
 
-Set up the latest version of docker in Ubuntu systems.
+Set up the latest version of [Docker Engine](https://docs.docker.com/engine/) in Debian-like systems.
 
 #### Requirements
 
-* `pip`, if `docker_install_api_client` is `true` (will not installed)
+* `apt-transport-https` (will be installed)
+* `ca-certificates` (will be installed)
+* `linux-image-extra-virtual` (will be installed, Ubuntu only)
+* `apparmor` (will be installed)
+* `cgroup-lite` (will be installed, Ubuntu only)
 
 #### Variables
 
-* `docker_binary` [default: `''`]: Customize location of Docker binary (especially for development testing)
-* `docker_opts` [default: `''`]: Modify the daemon startup options
-* `docker_http_proxy` [default: `''`]: If you need Docker to use an HTTP proxy, it can (also) be specified here
-* `docker_tmpdir` [default: `''`]:  This is also a handy place to tweak where Docker's temporary files go
+* `docker_etc_default_binary` [optional]: Customize location of Docker binary (especially for development testing) (e.g. `/usr/local/bin/docker`)
+* `docker_etc_default_opts` [optional]: Modify the daemon startup options (e.g. ['--dns 8.8.8.8', '--dns 8.8.4.4'])
+* `docker_etc_default_http_proxy` [optional]: If you need Docker to use an HTTP proxy, it can (also) be specified here (e.g. `http://127.0.0.1:3128/`)
+* `docker_etc_default_tmpdir` [optional]: This is also a handy place to tweak where Docker's temporary files go (e.g. `/mnt/bigdrive/docker-tmp`)
+
 * `docker_manage_ufw` [default: `true`]: Whether or not `ufw` should be managed (change default forward policy) by this role
 * `docker_manage_updatedb` [default: `true`]: Whether or not `updatedb` should be managed (disable indexing of `/var/lib/docker`) by this role
-* `docker_install_api_client` [default: `false`]: Whether or not `docker-py` should be installed
 
 ## Dependencies
 
@@ -26,7 +30,9 @@ None
 
 * `ansible-updatedb` ([see](https://github.com/Oefenweb/ansible-updatedb), when `docker_manage_ufw` is `false`)
 * `ansible-ufw` ([see](https://github.com/Oefenweb/ansible-ufw), when `docker_manage_updatedb` is `false`)
-* `ansible-pip` ([see](https://github.com/Oefenweb/ansible-pip), when `docker_install_api_client` is `true`)
+
+* `ansible-docker-compose` ([see](https://github.com/Oefenweb/ansible-docker-compose)
+* `ansible-docker-machine` ([see](https://github.com/Oefenweb/ansible-docker-machine)
 
 #### Example
 

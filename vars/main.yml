@@ -1,22 +1,27 @@
 # vars file for docker
 ---
+# For Ubuntu 12.04
 docker_backported_kernel_packages:
   - linux-image-generic-lts-trusty
   - linux-headers-generic-lts-trusty
-docker_dependencies:
+
+docker_dependencies_pre:
+  - apt-transport-https
+  - ca-certificates
+  - "{{ 'linux-image-extra-virtual' if ansible_distribution == 'Ubuntu' else '' }}"
   - apparmor
-  - cgroup-lite
-docker_apt_https_transport_file: /usr/lib/apt/methods/https
+  - "{{ 'cgroup-lite' if ansible_distribution == 'Ubuntu' else '' }}"
+
 docker_apt_key:
-  - id: A88D21E9
-    url: https://get.docker.com/gpg
-docker_repository:
+  - id: 2C52609D
+    url: https://apt.dockerproject.org/gpg
+docker_apt_repository:
   - type: deb
-    url: "https://get.docker.com/ubuntu docker"
+    url: "https://apt.dockerproject.org/repo {{ ansible_distribution | lower }}-{{ ansible_distribution_release }} main"
     component: main
-docker_package: lxc-docker
+
+docker_dependencies:
+  - docker-engine
+
 docker_ufw_default_file: /etc/default/ufw
 docker_updatedb_file: /etc/updatedb.conf
-docker_api_client_requirements:
-  - python-dev
-  - python-pip
