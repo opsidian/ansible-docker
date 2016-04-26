@@ -17,7 +17,7 @@ docker_apt_key:
     url: https://apt.dockerproject.org/gpg
 docker_apt_repository:
   - type: deb
-    url: "https://apt.dockerproject.org/repo {{ ansible_distribution | lower }}-{{ ansible_distribution_release }} main"
+    url: "https://apt.dockerproject.org/repo {{ ansible_distribution | lower }}-{{ ansible_distribution_release }}"
     component: main
 
 docker_dependencies:
