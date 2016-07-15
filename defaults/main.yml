@@ -1,4 +1,6 @@
 # defaults file for docker
 ---
+docker_service_postfix: ""
 docker_manage_ufw: true
 docker_manage_updatedb: true
+docker_etc_default_binary: /usr/bin/docker

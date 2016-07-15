@@ -45,10 +45,10 @@
     - docker
     - docker-install
 
-- name: update configuration file - /etc/default/docker
+- name: update configuration file - /etc/default/docker{{ docker_service_postfix }}
   template:
     src: etc/default/docker.j2
-    dest: /etc/default/docker
+    dest: /etc/default/docker{{ docker_service_postfix }}
     owner: root
     group: root
     mode: 0644
@@ -58,9 +58,29 @@
     - docker
     - docker-configuration
 
+- name: create custom init.d file for custom docker engine
+  copy:
+    src: /etc/init.d/docker
+    dest: /etc/init.d/docker{{ docker_service_postfix }}
+    remote_src: True
+    mode: 0755
+  when: docker_service_postfix != ""
+
+- name: update custom init.d file for custom docker engine
+  lineinfile:
+    dest: /etc/init.d/docker{{ docker_service_postfix }}
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  when: docker_service_postfix != ""
+  with_list:
+    - regexp: '^# Provides:           docker$'
+      line: "# Provides:           docker{{ docker_service_postfix }}"
+    - regexp: '^BASE=docker$'
+      line: BASE=docker{{ docker_service_postfix }}
+
 - name: start and enable service
   service:
-    name: docker
+    name: docker{{ docker_service_postfix }}
     state: started
     enabled: true
   tags:

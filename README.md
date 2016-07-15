@@ -14,6 +14,7 @@ Set up the latest version of [Docker Engine](https://docs.docker.com/engine/) in
 
 #### Variables
 
+* `docker_service_postfix` [optional]: If you want to run multiple Docker Engines you can set the service postfix with this variable (e.g. "-system" so the service name will be docker-system)
 * `docker_etc_default_binary` [optional]: Customize location of Docker binary (especially for development testing) (e.g. `/usr/local/bin/docker`)
 * `docker_etc_default_opts` [optional]: Modify the daemon startup options (e.g. `['--dns 8.8.8.8', '--dns 8.8.4.4']`)
 * `docker_etc_default_http_proxy` [optional]: If you need Docker to use an HTTP proxy, it can (also) be specified here (e.g. `http://127.0.0.1:3128/`)
@@ -41,6 +42,22 @@ None
 - hosts: all
   roles:
     - docker
+```
+
+Run multiple Docker Engines
+
+```
+---
+- hosts: all
+  roles:
+    - role: docker
+    - role: docker
+      docker_service_postfix: "-system"
+      docker_etc_default_opts:
+      - "-H unix:///var/run/docker-system.sock"
+      - "--exec-root=/var/run/docker-system"
+      - "--graph=/var/lib/docker-system"
+      - "--bridge=none"
 ```
 
 #### License

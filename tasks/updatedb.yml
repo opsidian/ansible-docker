@@ -8,8 +8,8 @@
   tags:
     - docker-updatedb-check-file-existence
 
-- name: disable indexing of /var/lib/docker
-  command: /usr/bin/updatedb -e /var/lib/docker
+- name: disable indexing of /var/lib/docker{{ docker_service_postfix }}
+  command: /usr/bin/updatedb -e /var/lib/docker{{ docker_service_postfix }}
   when: docker_manage_updatedb and updatedb_file_stats.stat.exists
   tags:
     - docker-updatedb-disable-indexing
