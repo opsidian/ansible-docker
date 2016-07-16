@@ -1,51 +1,36 @@
 # tasks file for docker
 ---
 - name: apt update
+  tags: [docker, docker-apt, docker-apt-update]
   apt:
     update_cache: true
     cache_valid_time: "{{ apt_update_cache_valid_time | default(3600) }}"
-  tags:
-    - configuration
-    - docker
-    - docker-apt
-    - docker-apt-update
 
 - include: backported-kernel.yml
+  tags: [docker, docker-backported-kernel]
   when: ansible_distribution == 'Ubuntu' and ansible_distribution_version | version_compare('12.04', '==')
-  tags:
-    - configuration
-    - docker
-    - docker-backported-kernel
 
 - name: install dependencies (pre)
+  tags: [docker, docker-install-dependencies]
   apt:
     name: "{{ item }}"
     state: latest
   with_items: "{{ docker_dependencies_pre }}"
   when: item != ''
-  tags:
-    - configuration
-    - docker
-    - docker-install-dependencies
 
 - include: repository.yml
-  tags:
-    - configuration
-    - docker
-    - docker-repository
+  tags: [docker, docker-repository]
 
 - name: install dependencies
+  tags: [docker, docker-install]
   apt:
     name: "{{ item }}"
     state: latest
   with_items: "{{ docker_dependencies }}"
   notify: restart docker
-  tags:
-    - configuration
-    - docker
-    - docker-install
 
 - name: update configuration file - /etc/default/docker{{ docker_service_postfix }}
+  tags: [docker, docker-configuration]
   template:
     src: etc/default/docker.j2
     dest: /etc/default/docker{{ docker_service_postfix }}
@@ -53,12 +38,9 @@
     group: root
     mode: 0644
   notify: restart docker
-  tags:
-    - configuration
-    - docker
-    - docker-configuration
 
 - name: create custom init.d file for custom docker engine
+  tags: [docker, docker-configuration]
   copy:
     src: /etc/init.d/docker
     dest: /etc/init.d/docker{{ docker_service_postfix }}
@@ -67,6 +49,7 @@
   when: docker_service_postfix != ""
 
 - name: update custom init.d file for custom docker engine
+  tags: [docker, docker-configuration]
   lineinfile:
     dest: /etc/init.d/docker{{ docker_service_postfix }}
     regexp: "{{ item.regexp }}"
@@ -78,24 +61,64 @@
     - regexp: '^BASE=docker$'
       line: BASE=docker{{ docker_service_postfix }}
 
+- name: create systemd service unit
+  tags: [docker, docker-configuration]
+  template:
+    src: lib/systemd/system/docker.service.j2
+    dest: /lib/systemd/system/docker{{ docker_service_postfix }}.service
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - reload systemd
+    - restart docker
+    - enable docker
+  when: docker_use_systemd|bool
+
+- name: create systemd socket unit
+  tags: [docker, docker-configuration]
+  template:
+    src: lib/systemd/system/docker.socket.j2
+    dest: /lib/systemd/system/docker{{ docker_service_postfix }}.socket
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - reload systemd
+    - restart docker
+    - enable docker
+  when: docker_use_systemd|bool
+
 - name: start and enable service
+  tags: [docker, docker-start-enable-service]
   service:
     name: docker{{ docker_service_postfix }}
     state: started
     enabled: true
-  tags:
-    - configuration
-    - docker
-    - docker-start-enable-service
+
+- name: install bridge-utils
+  tags: [docker, docker-remove-default-network]
+  apt:
+    name: bridge-utils
+    state: latest
+  when: docker_remove_default_network|bool and ansible_docker0.ipv4.address.startswith('172.')
+
+- name: take down docker0
+  tags: [docker, docker-remove-default-network]
+  notify:
+    - restart docker
+  command: /sbin/ifconfig docker0 down
+  when: docker_remove_default_network|bool and ansible_docker0.ipv4.address.startswith('172.')
+
+- name: remove docker0
+  tags: [docker, docker-remove-default-network]
+  notify:
+    - restart docker
+  command: brctl delbr docker0
+  when: docker_remove_default_network|bool and ansible_docker0.ipv4.address.startswith('172.')
 
 - include: ufw.yml
-  tags:
-    - configuration
-    - docker
-    - docker-ufw
+  tags: [docker-docker-ufw]
 
 - include: updatedb.yml
-  tags:
-    - configuration
-    - docker
-    - docker-updatedb
+  tags: [docker, docker-updatedb]

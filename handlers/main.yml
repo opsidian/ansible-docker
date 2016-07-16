@@ -1,5 +1,12 @@
 # handlers file for docker
 ---
+
+- name: reload systemd
+  command: systemctl daemon-reload
+
+- name: enable docker
+  command: sudo systemctl enable docker-system
+
 - name: restart docker
   service:
     name: docker{{ docker_service_postfix }}

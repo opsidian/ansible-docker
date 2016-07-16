@@ -1,0 +1,14 @@
+# {{ ansible_managed }}
+
+[Unit]
+Description=Docker Socket for the API
+PartOf=docker{{ docker_service_postfix }}.service
+
+[Socket]
+ListenStream=/var/run/docker{{ docker_service_postfix }}.sock
+SocketMode=0660
+SocketUser=root
+SocketGroup=docker
+
+[Install]
+WantedBy=sockets.target

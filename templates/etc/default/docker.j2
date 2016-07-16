@@ -10,8 +10,8 @@ DOCKER="{{ docker_etc_default_binary }}"
 {% endif %}
 
 # Use DOCKER_OPTS to modify the daemon startup options.
-{% if docker_etc_default_opts is defined %}
-DOCKER_OPTS="{{ docker_etc_default_opts | join(' ') }}"
+{% if docker_daemon_opts is defined %}
+DOCKER_OPTS="{{ docker_daemon_opts | join(' ') }}"
 {% else %}
 #DOCKER_OPTS="--dns 8.8.8.8 --dns 8.8.4.4"
 {% endif %}
